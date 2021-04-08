@@ -14,7 +14,12 @@ Class which tracks all information about a single puzzle piece in the image.
 test_images:
 Directory of images for testing purposes.
 
-
 testingImgs.py:
 Playground for experimenting with different OpenVC methods. Will be removed.
 
+Puzzle_App_GUI.py:
+Class which contains the GUI for Puzzle_Solver.py
+
+## How to Run
+1. Make sure you have opencv installed
+2. Run Puzzle_Solver.py

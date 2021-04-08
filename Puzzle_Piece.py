@@ -10,6 +10,7 @@ class PuzzlePiece:
         """
         self.original_piece_image = piece_image
         self.piece_orientations = self.get_rotations()
+        self.current_piece_index = 0
 
     def get_rotations(self):
         """
@@ -28,3 +29,7 @@ class PuzzlePiece:
         :return: 2d array containing the average color for edge of the puzzle piece
         """
         pass
+
+    def rotate(self):
+        self.current_piece_index += 1
+        self.current_piece_index %= 4
