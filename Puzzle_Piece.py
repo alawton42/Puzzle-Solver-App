@@ -9,10 +9,10 @@ class PuzzlePiece:
         :param piece_image: np.array of a single puzzle piece, cropped and transparent background
         """
         self.original_piece_image = piece_image
-        self.piece_orientations = self.get_rotations()
+        self.piece_orientations = self.__get_rotations()
         self.current_piece_index = 0
 
-    def get_rotations(self):
+    def __get_rotations(self):
         """
         Generates each orientation of the original puzzle piece image.
         :return: array of images. Contains each 90 degree orientation of original_piece_image
@@ -28,6 +28,7 @@ class PuzzlePiece:
         [[north edge][east edge][south edge][west edge]]
         :return: 2d array containing the average color for edge of the puzzle piece
         """
+        # Not necessary for assistant application
         pass
 
     def rotate(self):

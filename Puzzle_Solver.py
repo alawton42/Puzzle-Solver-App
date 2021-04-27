@@ -19,13 +19,14 @@ def remove_background(img):
     bgdModel = np.zeros((1, 65), np.float64)
     fgdModel = np.zeros((1, 65), np.float64)
 
-    # Will need adjustment
-    rect = (50, 50, 3000, 4000)
+    # Area to cut the bg
+    rect = (50, 50, img.shape[1], img.shape[0])
     cv.grabCut(img, mask, rect, bgdModel, fgdModel, 5, cv.GC_INIT_WITH_RECT)
 
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
     img = img * mask2[:, :, np.newaxis]
 
+    # Make bg transparent
     black_mask = np.all(img == 0, axis=-1)
     alpha = np.uint8(np.logical_not(black_mask)) * 255
     result = np.dstack((img, alpha))  # Add the alpha channel
@@ -35,9 +36,10 @@ def remove_background(img):
 
 def separate_pieces(clean, num_pieces):
     """
-    TBD
-    :param clean:
-    :return:
+    Finds possible shapes in the image that may be puzzle pieces and
+    selects the them based on the provided number of pieces
+    :param clean: image with removes background
+    :return: list of individual puzzle piece images
     """
     # Detect edges using Canny
     threshold = 100
@@ -88,7 +90,8 @@ def separate_pieces(clean, num_pieces):
 
 
 if __name__ == '__main__':
-    # Demo for Intermediate Milestone #1
+    print("Testing....")
+    # ==================== Demo for Intermediate Milestone #1 ====================
     # img = cv.imread('test_images/IMG_0173.jpg')
     # # img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
     # # cv.floodFill(img, None, seedPoint=(10, 10), newVal=(255, 255, 255), loDiff=(5, 5, 5, 5), upDiff=(5, 5, 5, 5))
@@ -108,7 +111,7 @@ if __name__ == '__main__':
     #     cv.imwrite(f'test_images/output/rotated{i}.png', r)
     #     cv.waitKey(0)
 
-    # Demo for Intermediate Milestone #2
+    # ==================== Demo for Intermediate Milestone #2 ====================
     # import glob
     #
     # pieces = []
@@ -125,11 +128,12 @@ if __name__ == '__main__':
     #
     # draw.run()
 
-    img = cv.imread('Dataset/PNGImages/0010.png')
-    img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
-    cv.floodFill(img, None, seedPoint=(10, 10), newVal=(255, 255, 255), loDiff=(3, 3, 3, 3), upDiff=(3, 3, 3, 3))
-    clean_image = remove_background(img)
-    # cv.imshow("clean Image", clean_image)
-    # cv.waitKey()
-    separate_pieces(clean_image, 6)
+    # ==================== Piece Seperation Testing ====================
+    # img = cv.imread('Dataset/PNGImages/0010.png')
+    # img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+    # cv.floodFill(img, None, seedPoint=(10, 10), newVal=(255, 255, 255), loDiff=(3, 3, 3, 3), upDiff=(3, 3, 3, 3))
+    # clean_image = remove_background(img)
+    # # cv.imshow("clean Image", clean_image)
+    # # cv.waitKey()
+    # separate_pieces(clean_image, 6)
 
