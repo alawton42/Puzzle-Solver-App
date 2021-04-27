@@ -1,8 +1,9 @@
 import cv2 as cv
 import numpy as np
+import random as rng
 from tkinter import Tk
 from Puzzle_Piece import PuzzlePiece
-from Puzzle_App_GUI import GUI
+# from Puzzle_App_GUI import GUI
 
 
 def remove_background(img):
@@ -32,13 +33,58 @@ def remove_background(img):
     return result
 
 
-def separate_pieces(clean):
+def separate_pieces(clean, num_pieces):
     """
     TBD
-    :param img:
+    :param clean:
     :return:
     """
-    pass
+    # Detect edges using Canny
+    threshold = 100
+    canny_output = cv.Canny(clean, threshold, threshold * 2)
+    kernel = np.ones([20, 20])
+    canny_output = cv.dilate(canny_output, kernel)
+    # cv.floodFill(canny_output, None, (0, 0), 255)
+
+    # Find contours
+    contours, _ = cv.findContours(canny_output, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+    # Approximate contours to polygons + get bounding rects
+    contours_poly = [None] * len(contours)
+    boundRect = [None] * len(contours)
+    for i, c in enumerate(contours):
+        contours_poly[i] = cv.approxPolyDP(c, 3, True)
+        boundRect[i] = cv.boundingRect(contours_poly[i])
+
+    drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+
+    # Draw polygonal contour + bounding rects
+    # Also store the area of each box
+    area = []
+    for i in range(len(contours)):
+        color = (rng.randint(0, 256), rng.randint(0, 256), rng.randint(0, 256))
+        cv.drawContours(drawing, contours_poly, i, color)
+        cv.rectangle(drawing, (int(boundRect[i][0]), int(boundRect[i][1])), (int(boundRect[i][0] + boundRect[i][2]), int(boundRect[i][1] + boundRect[i][3])), color, 2)
+        # print((int(boundRect[i][0]), int(boundRect[i][1])),
+        #       (int(boundRect[i][0] + boundRect[i][2]), int(boundRect[i][1] + boundRect[i][3])))
+        area.append((i, boundRect[i][2] * boundRect[i][3]))
+
+    # Find largest boxes(likely the puzzle pieces) and crop them from the image
+    area.sort(key=lambda x: x[1])
+    cropped = []
+    for _ in range(num_pieces):
+        i, _ = area.pop()
+        row1 = int(boundRect[i][0])
+        row2 = int(boundRect[i][0] + boundRect[i][2])
+        # print(row1, row2)
+        col1 = int(boundRect[i][1])
+        col2 = int(boundRect[i][1] + boundRect[i][3])
+        # print(col1, col2)
+        cropped_image = clean[col1:col2, row1:row2]
+        cropped.append(cropped_image)
+        # cv.imshow('Contours?', cropped_image)
+        # cv.waitKey()
+    return cropped
 
 
 if __name__ == '__main__':
@@ -63,19 +109,27 @@ if __name__ == '__main__':
     #     cv.waitKey(0)
 
     # Demo for Intermediate Milestone #2
-    import glob
+    # import glob
+    #
+    # pieces = []
+    # for filename in glob.glob('test_images/Pieces_for_milestone2_demo/*.png'):
+    #     img = cv.imread(filename)
+    #     # cv.imshow("tmp", img)
+    #     # cv.waitKey(0)
+    #     pieces.append(PuzzlePiece(img))
+    #
+    # root = Tk()
+    # root.geometry("800x600")
+    # root.configure(background='black')
+    # draw = GUI(root)
+    #
+    # draw.run()
 
-    pieces = []
-    for filename in glob.glob('test_images/Pieces_for_milestone2_demo/*.png'):
-        img = cv.imread(filename)
-        # cv.imshow("tmp", img)
-        # cv.waitKey(0)
-        pieces.append(PuzzlePiece(img))
-
-    root = Tk()
-    root.geometry("800x600")
-    root.configure(background='black')
-    draw = GUI(root, pieces)
-
-    draw.run()
+    img = cv.imread('Dataset/PNGImages/0010.png')
+    img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+    cv.floodFill(img, None, seedPoint=(10, 10), newVal=(255, 255, 255), loDiff=(3, 3, 3, 3), upDiff=(3, 3, 3, 3))
+    clean_image = remove_background(img)
+    # cv.imshow("clean Image", clean_image)
+    # cv.waitKey()
+    separate_pieces(clean_image, 6)
 
